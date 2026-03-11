@@ -125,6 +125,52 @@ if (sliderNext) sliderNext.addEventListener('click', () => { intIdx = (intIdx + 
 
 if (intSlides.length) { showIntSlide(0); resetIntTimer(); }
 
+// ── Renders Card Carousel ─────────────────────
+const rendersTrack = document.getElementById('rendersTrack');
+const renderCards = rendersTrack ? Array.from(rendersTrack.querySelectorAll('.render-card')) : [];
+const rendersDotsWrap = document.getElementById('rendersDots');
+const rendersPrevBtn = document.getElementById('rendersPrev');
+const rendersNextBtn = document.getElementById('rendersNext');
+
+let rendersIdx = 0;
+let rendersTimer;
+const rendersVisible = () => window.innerWidth <= 600 ? 1 : window.innerWidth <= 900 ? 2 : 3;
+const rendersTotal = () => Math.max(0, renderCards.length - rendersVisible());
+
+function buildRendersDots() {
+  if (!rendersDotsWrap) return;
+  rendersDotsWrap.innerHTML = '';
+  const pages = rendersTotal() + 1;
+  for (let i = 0; i < pages; i++) {
+    const d = document.createElement('button');
+    d.className = 'renders-dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => { rendersIdx = Math.min(i, rendersTotal()); moveRendersTrack(); resetRendersTimer(); });
+    rendersDotsWrap.appendChild(d);
+  }
+}
+
+function moveRendersTrack() {
+  if (!rendersTrack || !renderCards.length) return;
+  const cardW = renderCards[0].offsetWidth + 19; // card width + gap (1.2rem ≈ 19px)
+  rendersTrack.style.transform = `translateX(-${rendersIdx * cardW}px)`;
+  document.querySelectorAll('.renders-dot').forEach((d, i) => d.classList.toggle('active', i === rendersIdx));
+}
+
+function resetRendersTimer() {
+  clearInterval(rendersTimer);
+  rendersTimer = setInterval(() => {
+    rendersIdx = rendersIdx >= rendersTotal() ? 0 : rendersIdx + 1;
+    moveRendersTrack();
+  }, 4000);
+}
+
+if (rendersPrevBtn) rendersPrevBtn.addEventListener('click', () => { rendersIdx = Math.max(0, rendersIdx - 1); moveRendersTrack(); resetRendersTimer(); });
+if (rendersNextBtn) rendersNextBtn.addEventListener('click', () => { rendersIdx = Math.min(rendersTotal(), rendersIdx + 1); moveRendersTrack(); resetRendersTimer(); });
+
+window.addEventListener('resize', () => { rendersIdx = Math.min(rendersIdx, rendersTotal()); buildRendersDots(); moveRendersTrack(); });
+
+if (renderCards.length) { buildRendersDots(); resetRendersTimer(); }
+
 // ── Gallery Lightbox ──────────────────────────
 const galleryItems = document.querySelectorAll('.gallery-item');
 const lightbox = document.getElementById('lightbox');
