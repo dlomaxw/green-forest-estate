@@ -312,49 +312,81 @@ if (rendersTrack) {
   }
 }
 
-// ── Gallery Lightbox ──────────────────────────
+// ── Gallery & Renders Lightbox ──────────────────────────
 const galleryItems = document.querySelectorAll('.gallery-item');
+const renderCardsForLightbox = document.querySelectorAll('.render-card');
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
 const lightboxClose = document.getElementById('lightboxClose');
 const lightboxPrev = document.getElementById('lightboxPrev');
 const lightboxNext = document.getElementById('lightboxNext');
 
-const lightboxImages = Array.from(galleryItems).map(item => ({
+// Gallery images array
+const galleryImages = Array.from(galleryItems).map(item => ({
   src: item.getAttribute('data-src') || item.querySelector('img').src,
   alt: item.querySelector('img').alt
 }));
+
+// Render images array
+const renderImagesForLightbox = Array.from(renderCardsForLightbox).map(card => ({
+  src: card.querySelector('img').src,
+  alt: card.querySelector('img').alt
+}));
+
+let currentLightboxImages = []; // Will hold either gallery or render images
 let lightboxCurrent = 0;
 
-function openLightbox(idx) {
+function openLightboxWithImages(images, idx) {
+  currentLightboxImages = images;
   lightboxCurrent = idx;
-  lightboxImg.src = lightboxImages[idx].src;
-  lightboxImg.alt = lightboxImages[idx].alt;
+  lightboxImg.src = images[idx].src;
+  lightboxImg.alt = images[idx].alt;
   lightbox.classList.add('open');
   document.body.style.overflow = 'hidden';
 }
+
 function closeLightbox() {
   lightbox.classList.remove('open');
   document.body.style.overflow = '';
 }
 
+function updateLightboxImage(idx) {
+  lightboxCurrent = idx;
+  lightboxImg.src = currentLightboxImages[idx].src;
+  lightboxImg.alt = currentLightboxImages[idx].alt;
+}
+
+// Gallery items click - open lightbox with gallery images
 galleryItems.forEach((item, i) => {
-  item.addEventListener('click', () => openLightbox(i));
+  item.addEventListener('click', () => openLightboxWithImages(galleryImages, i));
 });
+
+// Render cards click - open lightbox with render images
+renderCardsForLightbox.forEach((card, i) => {
+  card.style.cursor = 'pointer';
+  card.setAttribute('title', 'Click to view full size');
+  card.addEventListener('click', (e) => {
+    // Don't open lightbox if clicking carousel arrows
+    if (e.target.closest('.renders-arrow')) return;
+    openLightboxWithImages(renderImagesForLightbox, i);
+  });
+});
+
 if (lightboxClose) lightboxClose.addEventListener('click', closeLightbox);
-lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+if (lightbox) lightbox.addEventListener('click', e => { if (e.target === lightbox) closeLightbox(); });
+
 if (lightboxPrev) lightboxPrev.addEventListener('click', () => {
-  lightboxCurrent = (lightboxCurrent - 1 + lightboxImages.length) % lightboxImages.length;
-  lightboxImg.src = lightboxImages[lightboxCurrent].src;
-  lightboxImg.alt = lightboxImages[lightboxCurrent].alt;
+  const newIdx = (lightboxCurrent - 1 + currentLightboxImages.length) % currentLightboxImages.length;
+  updateLightboxImage(newIdx);
 });
+
 if (lightboxNext) lightboxNext.addEventListener('click', () => {
-  lightboxCurrent = (lightboxCurrent + 1) % lightboxImages.length;
-  lightboxImg.src = lightboxImages[lightboxCurrent].src;
-  lightboxImg.alt = lightboxImages[lightboxCurrent].alt;
+  const newIdx = (lightboxCurrent + 1) % currentLightboxImages.length;
+  updateLightboxImage(newIdx);
 });
+
 document.addEventListener('keydown', (e) => {
-  if (!lightbox.classList.contains('open')) return;
+  if (!lightbox || !lightbox.classList.contains('open')) return;
   if (e.key === 'Escape') closeLightbox();
   if (e.key === 'ArrowLeft') lightboxPrev && lightboxPrev.click();
   if (e.key === 'ArrowRight') lightboxNext && lightboxNext.click();
@@ -452,7 +484,7 @@ window.addEventListener('scroll', () => {
   });
 });
 
-// ── AOS-style loc-point reveal ────────────
+// ��─ AOS-style loc-point reveal ────────────
 const locObserver = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
