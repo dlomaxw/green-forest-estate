@@ -652,6 +652,7 @@ if ('serviceWorker' in navigator) {
 
 // PWA Install Prompt Logic
 let deferredPrompt;
+let activeBannerType = null;
 const PWA_DISMISS_KEY = 'pwa-prompt-dismissed-time';
 const COOLDOWN_DAYS = 7;
 
@@ -675,12 +676,13 @@ function dismissPrompt() {
     tooltip.classList.remove('show');
     setTimeout(() => tooltip.remove(), 600);
   }
+  activeBannerType = null;
 }
 
 function showAndroidPromo() {
-  if (isDismissed()) return;
+  if (isDismissed() || document.getElementById('pwa-install-banner')) return;
   
-  // Create banner HTML
+  activeBannerType = 'android-native';
   const banner = document.createElement('div');
   banner.id = 'pwa-install-banner';
   banner.innerHTML = `
@@ -698,34 +700,30 @@ function showAndroidPromo() {
   `;
   document.body.appendChild(banner);
 
-  // Trigger smooth reveal animation
   setTimeout(() => banner.classList.add('show'), 100);
 
-  // Event Handlers
   document.getElementById('pwaCloseBtn').addEventListener('click', dismissPrompt);
   document.getElementById('pwaInstallBtn').addEventListener('click', () => {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then((choiceResult) => {
       if (choiceResult.outcome === 'accepted') {
-        console.log('[PWA] User accepted the install prompt');
         localStorage.setItem('pwa-installed', 'true');
       } else {
-        console.log('[PWA] User dismissed the install prompt');
         localStorage.setItem(PWA_DISMISS_KEY, Date.now().toString());
       }
       deferredPrompt = null;
-      // Remove banner
       banner.classList.remove('show');
       setTimeout(() => banner.remove(), 600);
+      activeBannerType = null;
     });
   });
 }
 
 function showIosPromo() {
-  if (isDismissed()) return;
+  if (isDismissed() || document.getElementById('pwa-ios-tooltip')) return;
 
-  // Create iOS Tooltip HTML
+  activeBannerType = 'ios-safari';
   const tooltip = document.createElement('div');
   tooltip.id = 'pwa-ios-tooltip';
   tooltip.innerHTML = `
@@ -742,34 +740,122 @@ function showIosPromo() {
   `;
   document.body.appendChild(tooltip);
 
-  // Trigger smooth reveal animation
   setTimeout(() => tooltip.classList.add('show'), 100);
 
-  // Event Handlers
   document.getElementById('pwaIosCloseBtn').addEventListener('click', dismissPrompt);
+}
+
+function showGenericMobilePromo(type) {
+  if (isDismissed() || document.getElementById('pwa-install-banner')) return;
+
+  activeBannerType = type;
+  const banner = document.createElement('div');
+  banner.id = 'pwa-install-banner';
+  
+  let instructionsText = '';
+  if (type === 'ios-other') {
+    instructionsText = 'Tap your browser share or menu button, then select <strong>Add to Home Screen</strong> to install the Forest Green Estates webapp.';
+  } else {
+    instructionsText = 'Tap your browser menu icon (usually <strong>⋮</strong> in the corner) and select <strong>Install</strong> or <strong>Add to Home Screen</strong>.';
+  }
+
+  banner.innerHTML = `
+    <div class="pwa-banner-header">
+      <img src="assets/images/favicon.png" alt="Forest Green Estates" class="pwa-banner-logo" />
+      <div class="pwa-banner-info">
+        <h4 class="pwa-banner-title">Forest Green Estates</h4>
+        <p class="pwa-banner-text">${instructionsText}</p>
+      </div>
+    </div>
+    <div class="pwa-banner-ctas">
+      <button class="pwa-btn-dismiss" id="pwaCloseBtn" style="flex: 1;">Dismiss</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+
+  setTimeout(() => banner.classList.add('show'), 100);
+  document.getElementById('pwaCloseBtn').addEventListener('click', dismissPrompt);
+}
+
+function upgradeToAndroidPromo() {
+  const banner = document.getElementById('pwa-install-banner');
+  if (!banner) return;
+
+  activeBannerType = 'android-native';
+  banner.innerHTML = `
+    <div class="pwa-banner-header">
+      <img src="assets/images/favicon.png" alt="Forest Green Estates" class="pwa-banner-logo" />
+      <div class="pwa-banner-info">
+        <h4 class="pwa-banner-title">Forest Green Estates</h4>
+        <p class="pwa-banner-text">Install our webapp on your device for offline access and a faster luxury experience.</p>
+      </div>
+    </div>
+    <div class="pwa-banner-ctas">
+      <button class="pwa-btn-dismiss" id="pwaCloseBtn">Later</button>
+      <button class="pwa-btn-install" id="pwaInstallBtn">Install App</button>
+    </div>
+  `;
+
+  document.getElementById('pwaCloseBtn').addEventListener('click', dismissPrompt);
+  document.getElementById('pwaInstallBtn').addEventListener('click', () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        localStorage.setItem('pwa-installed', 'true');
+      } else {
+        localStorage.setItem(PWA_DISMISS_KEY, Date.now().toString());
+      }
+      deferredPrompt = null;
+      banner.classList.remove('show');
+      setTimeout(() => banner.remove(), 600);
+      activeBannerType = null;
+    });
+  });
+}
+
+function initPwaPrompts() {
+  const isInStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+  if (isInStandalone || localStorage.getItem('pwa-installed') || isDismissed()) {
+    return;
+  }
+
+  const userAgent = navigator.userAgent.toLowerCase();
+  const isMobile = (window.innerWidth <= 1024) || /iphone|ipad|ipod|android|blackberry|iemobile|opera mini|mobile/.test(userAgent);
+
+  if (!isMobile) return;
+
+  const isIos = /iphone|ipad|ipod/.test(userAgent);
+  const isSafari = userAgent.includes('safari') && !userAgent.includes('crios') && !userAgent.includes('fxios');
+
+  if (isIos) {
+    if (isSafari) {
+      showIosPromo();
+    } else {
+      showGenericMobilePromo('ios-other');
+    }
+  } else {
+    if (deferredPrompt) {
+      showAndroidPromo();
+    } else {
+      showGenericMobilePromo('fallback-android');
+    }
+  }
 }
 
 // Listen for PWA installation prompts
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPrompt = e;
-  // If not already installed or in standalone mode, display custom promo
-  if (!window.matchMedia('(display-mode: standalone)').matches && !localStorage.getItem('pwa-installed')) {
-    showAndroidPromo();
+  
+  if (activeBannerType === 'fallback-android') {
+    upgradeToAndroidPromo();
   }
 });
 
-// iOS Safari Detection
-const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
-const isSafari = navigator.userAgent.toLowerCase().includes('safari') && !navigator.userAgent.toLowerCase().includes('crios') && !navigator.userAgent.toLowerCase().includes('fxios');
-const isInStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+// Run prompts init sequence after the preloader completes
+window.addEventListener('DOMContentLoaded', () => {
+  setTimeout(initPwaPrompts, 4500);
+});
 
-if (isIos && isSafari && !isInStandalone && !localStorage.getItem('pwa-installed')) {
-  window.addEventListener('DOMContentLoaded', () => {
-    // Show iOS promotion after the preloader has finished
-    setTimeout(() => {
-      showIosPromo();
-    }, 4500); // Wait for the intro preloader sequences to settle
-  });
-}
 
