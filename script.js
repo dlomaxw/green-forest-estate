@@ -640,3 +640,136 @@ if (timelineWrap && timelineProgress && timelineItems.length) {
   // Initial check
   animateTimeline();
 }
+
+// ── PWA Integration ─────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then((reg) => console.log('[Service Worker] Registered successfully', reg.scope))
+      .catch((err) => console.error('[Service Worker] Registration failed', err));
+  });
+}
+
+// PWA Install Prompt Logic
+let deferredPrompt;
+const PWA_DISMISS_KEY = 'pwa-prompt-dismissed-time';
+const COOLDOWN_DAYS = 7;
+
+function isDismissed() {
+  const dismissedTime = localStorage.getItem(PWA_DISMISS_KEY);
+  if (!dismissedTime) return false;
+  const elapsed = Date.now() - parseInt(dismissedTime, 10);
+  const cooldownMs = COOLDOWN_DAYS * 24 * 60 * 60 * 1000;
+  return elapsed < cooldownMs;
+}
+
+function dismissPrompt() {
+  localStorage.setItem(PWA_DISMISS_KEY, Date.now().toString());
+  const banner = document.getElementById('pwa-install-banner');
+  if (banner) {
+    banner.classList.remove('show');
+    setTimeout(() => banner.remove(), 600);
+  }
+  const tooltip = document.getElementById('pwa-ios-tooltip');
+  if (tooltip) {
+    tooltip.classList.remove('show');
+    setTimeout(() => tooltip.remove(), 600);
+  }
+}
+
+function showAndroidPromo() {
+  if (isDismissed()) return;
+  
+  // Create banner HTML
+  const banner = document.createElement('div');
+  banner.id = 'pwa-install-banner';
+  banner.innerHTML = `
+    <div class="pwa-banner-header">
+      <img src="assets/images/favicon.png" alt="Forest Green Estates" class="pwa-banner-logo" />
+      <div class="pwa-banner-info">
+        <h4 class="pwa-banner-title">Forest Green Estates</h4>
+        <p class="pwa-banner-text">Install our webapp on your device for offline access and a faster luxury experience.</p>
+      </div>
+    </div>
+    <div class="pwa-banner-ctas">
+      <button class="pwa-btn-dismiss" id="pwaCloseBtn">Later</button>
+      <button class="pwa-btn-install" id="pwaInstallBtn">Install App</button>
+    </div>
+  `;
+  document.body.appendChild(banner);
+
+  // Trigger smooth reveal animation
+  setTimeout(() => banner.classList.add('show'), 100);
+
+  // Event Handlers
+  document.getElementById('pwaCloseBtn').addEventListener('click', dismissPrompt);
+  document.getElementById('pwaInstallBtn').addEventListener('click', () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+      if (choiceResult.outcome === 'accepted') {
+        console.log('[PWA] User accepted the install prompt');
+        localStorage.setItem('pwa-installed', 'true');
+      } else {
+        console.log('[PWA] User dismissed the install prompt');
+        localStorage.setItem(PWA_DISMISS_KEY, Date.now().toString());
+      }
+      deferredPrompt = null;
+      // Remove banner
+      banner.classList.remove('show');
+      setTimeout(() => banner.remove(), 600);
+    });
+  });
+}
+
+function showIosPromo() {
+  if (isDismissed()) return;
+
+  // Create iOS Tooltip HTML
+  const tooltip = document.createElement('div');
+  tooltip.id = 'pwa-ios-tooltip';
+  tooltip.innerHTML = `
+    <div class="pwa-ios-header">
+      <h4 class="pwa-ios-title">Add to Home Screen</h4>
+      <button class="pwa-ios-close" id="pwaIosCloseBtn">&times;</button>
+    </div>
+    <div class="pwa-ios-body">
+      Install the Forest Green Estates app on your iPhone: tap the Share button 
+      <span class="pwa-ios-icon-helper"><svg width="16" height="20" viewBox="0 0 16 20" fill="none" stroke="currentColor" stroke-width="1.5" style="display:inline-block;vertical-align:middle;width:12px;height:15px;margin-bottom:2px;"><path d="M8 12V2m0 0L5 5m3-3l3 3M2 8v9a1 1 0 001 1h10a1 1 0 001-1V8"/></svg></span> 
+      in Safari, then select <strong>Add to Home Screen</strong> <span class="pwa-ios-icon-helper">+</span> from the menu.
+    </div>
+    <div class="pwa-ios-arrow-down"></div>
+  `;
+  document.body.appendChild(tooltip);
+
+  // Trigger smooth reveal animation
+  setTimeout(() => tooltip.classList.add('show'), 100);
+
+  // Event Handlers
+  document.getElementById('pwaIosCloseBtn').addEventListener('click', dismissPrompt);
+}
+
+// Listen for PWA installation prompts
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  // If not already installed or in standalone mode, display custom promo
+  if (!window.matchMedia('(display-mode: standalone)').matches && !localStorage.getItem('pwa-installed')) {
+    showAndroidPromo();
+  }
+});
+
+// iOS Safari Detection
+const isIos = /iphone|ipad|ipod/.test(navigator.userAgent.toLowerCase());
+const isSafari = navigator.userAgent.toLowerCase().includes('safari') && !navigator.userAgent.toLowerCase().includes('crios') && !navigator.userAgent.toLowerCase().includes('fxios');
+const isInStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+
+if (isIos && isSafari && !isInStandalone && !localStorage.getItem('pwa-installed')) {
+  window.addEventListener('DOMContentLoaded', () => {
+    // Show iOS promotion after the preloader has finished
+    setTimeout(() => {
+      showIosPromo();
+    }, 4500); // Wait for the intro preloader sequences to settle
+  });
+}
+
