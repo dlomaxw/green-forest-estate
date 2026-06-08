@@ -24,7 +24,7 @@
 
 /* ── Reset ── */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; }
 body {
   font-family: var(--font-sans);
   color: var(--text-dark);
@@ -420,7 +420,7 @@ ul { list-style: none; }
 /* ══════════════════════════════════════════
    MARQUEE
    ══════════════════════════════════════════ */
-.marquee-wrap {
+.marquee-bar {
   background: var(--green);
   padding: 1rem 0;
   overflow: hidden;
@@ -1919,6 +1919,12 @@ ul { list-style: none; }
   .form-group input, .form-group select, .form-group textarea {
     font-size: 0.95rem; /* prevents iOS zoom on input focus */
     padding: 0.9rem 0.85rem;
+  }
+
+  /* Calculator */
+  .calculator-wrap {
+    padding: 1.5rem 1.25rem !important;
+    gap: 2rem;
   }
 
   /* Footer */
