@@ -742,53 +742,56 @@ ul { list-style: none; }
   background: #f7f9f5;
 }
 .location-light .loc-address {
-  background: var(--white);
-  border: 1px solid rgba(26, 58, 42, 0.15);
-  box-shadow: 0 10px 30px rgba(26, 58, 42, 0.06);
-  backdrop-filter: none;
+  background: #ffffff !important;
+  border: 1px solid rgba(26, 58, 42, 0.18) !important;
+  box-shadow: 0 10px 30px rgba(26, 58, 42, 0.07) !important;
+  backdrop-filter: none !important;
   border-radius: 10px;
 }
+/* ── CRITICAL: Force dark text in light section (base styles use white) ── */
 .location-light .loc-address h3 {
-  color: var(--green);
+  color: #1A3A2A !important;
   font-size: 1.25rem;
 }
 .location-light .loc-address p {
-  color: var(--text-mid);
+  color: #3d5441 !important;
   font-size: 0.9rem;
 }
 .location-light .loc-point {
-  background: var(--white);
-  border: 1px solid rgba(26, 58, 42, 0.1);
-  box-shadow: 0 6px 20px rgba(26, 58, 42, 0.04);
+  background: #ffffff !important;
+  border: 1px solid rgba(26, 58, 42, 0.12) !important;
+  box-shadow: 0 6px 20px rgba(26, 58, 42, 0.06) !important;
   border-radius: 10px;
   transition: all 0.25s ease;
 }
 .location-light .loc-point:hover {
-  border-color: var(--gold);
-  background: var(--white);
+  border-color: #C9A84C !important;
+  background: #ffffff !important;
   transform: translateY(-3px);
-  box-shadow: 0 16px 40px rgba(26, 58, 42, 0.1);
+  box-shadow: 0 16px 40px rgba(26, 58, 42, 0.12) !important;
 }
+/* Body text of each loc-point card – MUST be dark on white background */
 .location-light .loc-text {
-  color: #2c3e30;
+  color: #2c3e30 !important;
   font-size: 0.92rem;
   line-height: 1.6;
 }
+/* Gold label above the body text */
 .location-light .loc-text strong {
   display: block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--gold);
+  color: #C9A84C !important;
   margin-bottom: 0.25rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 .location-light .loc-point strong {
-  color: var(--gold);
+  color: #C9A84C !important;
 }
-/* Keep icon circles visible on light background – just use the forest-green fill */
+/* Keep icon circles visible on light background */
 .location-light .loc-icon svg circle {
-  fill: #1A3A2A;
+  fill: #1A3A2A !important;
 }
 .location-light .map-container {
   border-color: rgba(26, 58, 42, 0.2);
