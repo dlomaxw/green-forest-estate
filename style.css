@@ -2967,6 +2967,13 @@ ul { list-style: none; }
   .dfcu-mortgage-section {
     padding: 5rem 0;
   }
+  .benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 1.2rem;
+  }
+  .benefit-card {
+    padding: 2rem 1.5rem;
+  }
   .tabs-content {
     padding: 2rem 1.2rem;
   }
