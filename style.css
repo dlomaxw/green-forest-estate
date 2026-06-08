@@ -694,9 +694,8 @@ ul { list-style: none; }
 }
 .location-address p { font-size: 0.88rem; color: rgba(255,255,255,0.65); line-height: 1.7; }
 .location-points {
-  grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
   gap: 1.5rem;
 }
 .loc-point {
@@ -733,6 +732,40 @@ ul { list-style: none; }
   margin-bottom: 0.2rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+/* ── Location Page Light Theme Overrides ── */
+.location-light .loc-address {
+  background: var(--white);
+  border: 1px solid rgba(26, 58, 42, 0.15);
+  box-shadow: 0 10px 30px rgba(26, 58, 42, 0.05);
+  backdrop-filter: none;
+}
+.location-light .loc-address h3 {
+  color: var(--green);
+}
+.location-light .loc-address p {
+  color: var(--text-dark);
+}
+.location-light .loc-point {
+  background: var(--white);
+  border: 1px solid rgba(26, 58, 42, 0.1);
+  box-shadow: 0 6px 20px rgba(26, 58, 42, 0.04);
+}
+.location-light .loc-point:hover {
+  border-color: var(--gold);
+  background: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(26, 58, 42, 0.08);
+}
+.location-light .loc-text {
+  color: var(--text-dark);
+}
+.location-light .loc-point strong {
+  color: var(--gold);
+}
+.location-light .loc-icon svg circle {
+  fill: transparent;
 }
 
 /* ══════════════════════════════════════════
