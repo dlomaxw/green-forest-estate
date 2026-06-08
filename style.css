@@ -654,12 +654,15 @@ ul { list-style: none; }
 .map-container {
   width: 100%;
   overflow: hidden;
-  border-radius: 8px;
-  border: 1px solid rgba(201,168,76,0.2);
+  border-radius: 12px;
+  border: 2px solid rgba(201,168,76,0.25);
+  box-shadow: 0 20px 60px rgba(26,58,42,0.15);
+  min-height: 420px;
 }
 .map-container iframe {
   display: block;
-  border-radius: 8px;
+  border-radius: 10px;
+  min-height: 420px;
 }
 .location-grid {
   display: grid;
@@ -695,8 +698,8 @@ ul { list-style: none; }
 .location-address p { font-size: 0.88rem; color: rgba(255,255,255,0.65); line-height: 1.7; }
 .location-points {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.2rem;
 }
 .loc-point {
   display: flex;
@@ -735,37 +738,61 @@ ul { list-style: none; }
 }
 
 /* ── Location Page Light Theme Overrides ── */
+.location-light {
+  background: #f7f9f5;
+}
 .location-light .loc-address {
   background: var(--white);
   border: 1px solid rgba(26, 58, 42, 0.15);
-  box-shadow: 0 10px 30px rgba(26, 58, 42, 0.05);
+  box-shadow: 0 10px 30px rgba(26, 58, 42, 0.06);
   backdrop-filter: none;
+  border-radius: 10px;
 }
 .location-light .loc-address h3 {
   color: var(--green);
+  font-size: 1.25rem;
 }
 .location-light .loc-address p {
-  color: var(--text-dark);
+  color: var(--text-mid);
+  font-size: 0.9rem;
 }
 .location-light .loc-point {
   background: var(--white);
   border: 1px solid rgba(26, 58, 42, 0.1);
   box-shadow: 0 6px 20px rgba(26, 58, 42, 0.04);
+  border-radius: 10px;
+  transition: all 0.25s ease;
 }
 .location-light .loc-point:hover {
   border-color: var(--gold);
   background: var(--white);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px rgba(26, 58, 42, 0.08);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 40px rgba(26, 58, 42, 0.1);
 }
 .location-light .loc-text {
-  color: var(--text-dark);
+  color: #2c3e30;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+.location-light .loc-text strong {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--gold);
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 .location-light .loc-point strong {
   color: var(--gold);
 }
+/* Keep icon circles visible on light background – just use the forest-green fill */
 .location-light .loc-icon svg circle {
-  fill: transparent;
+  fill: #1A3A2A;
+}
+.location-light .map-container {
+  border-color: rgba(26, 58, 42, 0.2);
+  box-shadow: 0 20px 60px rgba(26, 58, 42, 0.12);
 }
 
 /* ══════════════════════════════════════════
@@ -1782,10 +1809,11 @@ ul { list-style: none; }
 
   /* Location */
   .location-section { padding: 4rem 0; }
-  .location-points { grid-template-columns: 1fr; gap: 1rem; }
+  .location-points { grid-template-columns: 1fr 1fr; gap: 1rem; }
   .location-address { padding: 1.5rem; }
   .location-address h3 { font-size: 1.1rem; }
-  .map-container iframe { height: 280px; }
+  .map-container { min-height: 340px; }
+  .map-container iframe { height: 340px; min-height: 340px; }
 
   /* Reasons */
   .reasons-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
@@ -1899,9 +1927,11 @@ ul { list-style: none; }
 
   /* Location */
   .location-section { padding: 3.5rem 0; }
+  .location-points { grid-template-columns: 1fr; }
   .loc-point { padding: 1rem 1rem; flex-direction: row; align-items: center; }
   .loc-text { font-size: 0.82rem; }
-  .map-container iframe { height: 240px; }
+  .map-container { min-height: 300px; }
+  .map-container iframe { height: 300px; min-height: 300px; }
 
   /* Reasons */
   .reasons-grid { grid-template-columns: 1fr; }
