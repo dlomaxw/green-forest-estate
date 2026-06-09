@@ -742,37 +742,36 @@ ul { list-style: none; }
   background: #f7f9f5;
 }
 .location-light .loc-address {
-  background: #ffffff !important;
-  border: 1px solid rgba(26, 58, 42, 0.18) !important;
-  box-shadow: 0 10px 30px rgba(26, 58, 42, 0.07) !important;
-  backdrop-filter: none !important;
-  border-radius: 10px;
+  background: #1A3A2A;
+  border: 1px solid rgba(201,168,76,0.3);
+  box-shadow: 0 12px 40px rgba(26,58,42,0.25);
+  backdrop-filter: none;
+  border-radius: 12px;
 }
-/* ── CRITICAL: Force dark text in light section (base styles use white) ── */
 .location-light .loc-address h3 {
-  color: #1A3A2A !important;
-  font-size: 1.25rem;
+  color: #ffffff;
+  font-size: 1.3rem;
 }
 .location-light .loc-address p {
-  color: #3d5441 !important;
-  font-size: 0.9rem;
+  color: rgba(255,255,255,0.75);
+  font-size: 0.88rem;
 }
 .location-light .loc-point {
-  background: #ffffff !important;
-  border: 1px solid rgba(26, 58, 42, 0.12) !important;
-  box-shadow: 0 6px 20px rgba(26, 58, 42, 0.06) !important;
-  border-radius: 10px;
+  background: #1A3A2A;
+  border: 1px solid rgba(201,168,76,0.25);
+  box-shadow: 0 8px 30px rgba(26,58,42,0.2);
+  border-radius: 12px;
   transition: all 0.25s ease;
 }
 .location-light .loc-point:hover {
-  border-color: #C9A84C !important;
-  background: #ffffff !important;
+  border-color: #C9A84C;
+  background: #1e4230;
   transform: translateY(-3px);
-  box-shadow: 0 16px 40px rgba(26, 58, 42, 0.12) !important;
+  box-shadow: 0 16px 40px rgba(26,58,42,0.3);
 }
-/* Body text of each loc-point card – MUST be dark on white background */
+/* Body text of each loc-point card – white text on dark green background */
 .location-light .loc-text {
-  color: #2c3e30 !important;
+  color: rgba(255,255,255,0.85);
   font-size: 0.92rem;
   line-height: 1.6;
 }
