@@ -1,0 +1,15 @@
+# Environment secrets - NEVER commit these
+.env
+.env.local
+.env.production
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Local data files
+leads.json
+
+# OS files
+.DS_Store
+Thumbs.db

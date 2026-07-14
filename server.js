@@ -1,3 +1,6 @@
+// Load .env for local development (Vercel injects env vars automatically in production)
+require('./load-env');
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
