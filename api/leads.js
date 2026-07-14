@@ -1,17 +1,50 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const LEADS_FILE = path.join(process.cwd(), 'leads.json');
 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'manager@greenforest.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Greenforest2026!';
+const JWT_SECRET = process.env.JWT_SECRET || 'forest-green-estates-jwt-secret-2026';
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Helper: Validate session token
+function validateToken(req) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const suppliedToken = authHeader.split(' ')[1];
+  const expectedToken = crypto.createHmac('sha256', JWT_SECRET)
+    .update(ADMIN_USERNAME + ':' + ADMIN_PASSWORD + ':session')
+    .digest('hex');
+  return suppliedToken === expectedToken;
+}
+
+// Helper: Supabase REST query wrapper
+async function supabaseFetch(pathname, options = {}) {
+  const url = `${SUPABASE_URL}/rest/v1${pathname}`;
+  const resp = await fetch(url, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  return resp;
+}
+
 module.exports = async (req, res) => {
   const method = req.method;
-  const KV_URL = process.env.KV_REST_API_URL;
-  const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (method === 'OPTIONS') {
     res.status(200).end();
@@ -20,19 +53,20 @@ module.exports = async (req, res) => {
 
   // ── GET LEADS ──
   if (method === 'GET') {
-    if (KV_URL && KV_TOKEN) {
+    if (!validateToken(req)) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
       try {
-        const response = await fetch(`${KV_URL}/get/leads_list`, {
-          headers: { Authorization: `Bearer ${KV_TOKEN}` }
-        });
-        const data = await response.json();
-        const leads = data.result ? JSON.parse(data.result) : [];
-        res.status(200).json(leads);
+        const r = await supabaseFetch('/leads?order=timestamp.desc&limit=500');
+        const data = await r.json();
+        res.status(r.status).json(data);
       } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch from KV database: ' + err.message });
+        res.status(500).json({ error: 'Supabase fetch error: ' + err.message });
       }
     } else {
-      // Local fallback
       let leads = [];
       if (fs.existsSync(LEADS_FILE)) {
         try {
@@ -68,30 +102,19 @@ module.exports = async (req, res) => {
       lead.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
       lead.timestamp = new Date().toISOString();
 
-      if (KV_URL && KV_TOKEN) {
+      if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
         try {
-          // Get current leads
-          const getRes = await fetch(`${KV_URL}/get/leads_list`, {
-            headers: { Authorization: `Bearer ${KV_TOKEN}` }
-          });
-          const getData = await getRes.json();
-          let leads = getData.result ? JSON.parse(getData.result) : [];
-          
-          leads.push(lead);
-
-          // Save back
-          await fetch(`${KV_URL}/set/leads_list`, {
+          const r = await supabaseFetch('/leads', {
             method: 'POST',
-            headers: { Authorization: `Bearer ${KV_TOKEN}` },
-            body: JSON.stringify(leads)
+            body: JSON.stringify(lead)
           });
-
-          res.status(200).json({ success: true, lead });
+          const data = await r.json();
+          res.status(r.status).json({ success: r.ok, lead: data[0] || lead });
         } catch (err) {
-          res.status(500).json({ error: 'Failed to save to KV database: ' + err.message });
+          res.status(500).json({ error: 'Supabase insert error: ' + err.message });
         }
       } else {
-        // Local fallback
+        // Local fallback (primarily for local dev)
         let leads = [];
         if (fs.existsSync(LEADS_FILE)) {
           try {
@@ -101,7 +124,11 @@ module.exports = async (req, res) => {
           }
         }
         leads.push(lead);
-        fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2), 'utf8');
+        try {
+          fs.writeFileSync(LEADS_FILE, JSON.stringify(leads, null, 2), 'utf8');
+        } catch (e) {
+          console.warn('Failed to write leads.json to disk:', e.message);
+        }
         res.status(200).json({ success: true, lead });
       }
     });
@@ -110,34 +137,27 @@ module.exports = async (req, res) => {
 
   // ── DELETE LEAD ──
   if (method === 'DELETE') {
+    if (!validateToken(req)) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
     const id = req.query ? req.query.id : new URL(req.url, 'http://localhost').searchParams.get('id');
     if (!id) {
       res.status(400).json({ error: 'Lead ID required' });
       return;
     }
 
-    if (KV_URL && KV_TOKEN) {
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
       try {
-        const getRes = await fetch(`${KV_URL}/get/leads_list`, {
-          headers: { Authorization: `Bearer ${KV_TOKEN}` }
+        const r = await supabaseFetch(`/leads?id=eq.${encodeURIComponent(id)}`, {
+          method: 'DELETE'
         });
-        const getData = await getRes.json();
-        let leads = getData.result ? JSON.parse(getData.result) : [];
-        
-        const filteredLeads = leads.filter(l => l.id !== id);
-
-        await fetch(`${KV_URL}/set/leads_list`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${KV_TOKEN}` },
-          body: JSON.stringify(filteredLeads)
-        });
-
-        res.status(200).json({ success: true });
+        res.status(r.ok ? 200 : r.status).json(r.ok ? { success: true } : { error: 'Failed to delete' });
       } catch (err) {
-        res.status(500).json({ error: 'Failed to delete from KV database: ' + err.message });
+        res.status(500).json({ error: 'Supabase delete error: ' + err.message });
       }
     } else {
-      // Local fallback
       let leads = [];
       if (fs.existsSync(LEADS_FILE)) {
         try {
@@ -145,7 +165,9 @@ module.exports = async (req, res) => {
         } catch (e) {}
       }
       const filteredLeads = leads.filter(l => l.id !== id);
-      fs.writeFileSync(LEADS_FILE, JSON.stringify(filteredLeads, null, 2), 'utf8');
+      try {
+        fs.writeFileSync(LEADS_FILE, JSON.stringify(filteredLeads, null, 2), 'utf8');
+      } catch (e) {}
       res.status(200).json({ success: true });
     }
     return;

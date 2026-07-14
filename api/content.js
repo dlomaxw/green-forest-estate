@@ -1,17 +1,50 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 
 const CONTENT_FILE = path.join(process.cwd(), 'assets', 'data', 'content.json');
 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'manager@greenforest.com';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'Greenforest2026!';
+const JWT_SECRET = process.env.JWT_SECRET || 'forest-green-estates-jwt-secret-2026';
+
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Helper: Validate session token
+function validateToken(req) {
+  const authHeader = req.headers['authorization'];
+  if (!authHeader || !authHeader.startsWith('Bearer ')) return false;
+  const suppliedToken = authHeader.split(' ')[1];
+  const expectedToken = crypto.createHmac('sha256', JWT_SECRET)
+    .update(ADMIN_USERNAME + ':' + ADMIN_PASSWORD + ':session')
+    .digest('hex');
+  return suppliedToken === expectedToken;
+}
+
+// Helper: Supabase REST query wrapper
+async function supabaseFetch(pathname, options = {}) {
+  const url = `${SUPABASE_URL}/rest/v1${pathname}`;
+  const resp = await fetch(url, {
+    ...options,
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+      ...(options.headers || {})
+    }
+  });
+  return resp;
+}
+
 module.exports = async (req, res) => {
   const method = req.method;
-  const KV_URL = process.env.KV_REST_API_URL;
-  const KV_TOKEN = process.env.KV_REST_API_TOKEN;
 
   // Set CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (method === 'OPTIONS') {
     res.status(200).end();
@@ -20,25 +53,20 @@ module.exports = async (req, res) => {
 
   // ── GET CONTENT ──
   if (method === 'GET') {
-    if (KV_URL && KV_TOKEN) {
+    if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
       try {
-        const response = await fetch(`${KV_URL}/get/site_content`, {
-          headers: { Authorization: `Bearer ${KV_TOKEN}` }
-        });
-        const data = await response.json();
-        
-        if (data.result) {
-          res.status(200).json(JSON.parse(data.result));
-        } else {
-          // Serve static file config as fallback
-          let content = {};
-          if (fs.existsSync(CONTENT_FILE)) {
-            content = JSON.parse(fs.readFileSync(CONTENT_FILE, 'utf8'));
-          }
-          res.status(200).json(content);
+        const r = await supabaseFetch('/content?select=key,value');
+        const rows = await r.json();
+        // Convert [{key, value}] array -> flat object
+        const config = {};
+        if (Array.isArray(rows)) {
+          rows.forEach(row => {
+            config[row.key] = row.value;
+          });
         }
+        res.status(200).json(config);
       } catch (err) {
-        res.status(500).json({ error: 'Failed to fetch from KV database: ' + err.message });
+        res.status(500).json({ error: 'Supabase fetch error: ' + err.message });
       }
     } else {
       // Local fallback
@@ -55,6 +83,11 @@ module.exports = async (req, res) => {
 
   // ── POST CONTENT ──
   if (method === 'POST') {
+    if (!validateToken(req)) {
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
+    }
+
     let body = '';
     req.on('data', chunk => { body += chunk.toString(); });
     req.on('end', async () => {
@@ -66,21 +99,27 @@ module.exports = async (req, res) => {
         return;
       }
 
-      if (KV_URL && KV_TOKEN) {
+      if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+        // Upsert each key-value pair
+        const rows = Object.entries(newContent).map(([key, value]) => ({ key, value }));
         try {
-          await fetch(`${KV_URL}/set/site_content`, {
+          const r = await supabaseFetch('/content', {
             method: 'POST',
-            headers: { Authorization: `Bearer ${KV_TOKEN}` },
-            body: JSON.stringify(newContent)
+            body: JSON.stringify(rows),
+            headers: { Prefer: 'resolution=merge-duplicates,return=representation' }
           });
-          res.status(200).json({ success: true });
+          res.status(r.ok ? 200 : r.status).json(r.ok ? { success: true } : { error: 'Failed to save' });
         } catch (err) {
-          res.status(500).json({ error: 'Failed to save to KV database: ' + err.message });
+          res.status(500).json({ error: 'Supabase upsert error: ' + err.message });
         }
       } else {
         // Local fallback
-        fs.writeFileSync(CONTENT_FILE, JSON.stringify(newContent, null, 2), 'utf8');
-        res.status(200).json({ success: true });
+        try {
+          fs.writeFileSync(CONTENT_FILE, JSON.stringify(newContent, null, 2), 'utf8');
+          res.status(200).json({ success: true });
+        } catch (e) {
+          res.status(500).json({ error: 'Failed to write content file locally: ' + e.message });
+        }
       }
     });
     return;
