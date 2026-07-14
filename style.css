@@ -614,6 +614,7 @@ ul { list-style: none; }
   position: relative;
   padding: 8rem 0;
   overflow: hidden;
+  background: linear-gradient(135deg, #1a3a2a 0%, #11271c 100%);
 }
 .location-map-bg {
   position: absolute;
@@ -1610,6 +1611,11 @@ ul { list-style: none; }
    RESPONSIVE – COMPREHENSIVE MOBILE-FIRST
    ══════════════════════════════════════════ */
 
+/* ── Mobile Nav Items Default Hidden ── */
+.mobile-only-nav-item {
+  display: none !important;
+}
+
 /* ── Large Tablet / Small Desktop ── */
 @media (max-width: 1200px) {
   .reasons-grid { grid-template-columns: repeat(3, 1fr); }
@@ -1622,6 +1628,11 @@ ul { list-style: none; }
 /* ── Tablet Landscape ── */
 @media (max-width: 1024px) {
   /* Navbar */
+  .navbar {
+    background: var(--green) !important;
+    box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+    padding: 0.5rem 0;
+  }
   .nav-links { display: none; }
   .navbar > .nav-inner > .nav-cta,
   .navbar > .nav-inner > .nav-partner-logo {
@@ -3241,10 +3252,7 @@ body.preloading {
   100% { width: 100%; }
 }
 
-/* ── Mobile Nav Items Default Hidden ── */
-.mobile-only-nav-item {
-  display: none !important;
-}
+/* Note: .mobile-only-nav-item moved above media queries for specificity ordering */
 
 /* ── PWA Install Banner & Tooltip ── */
 #pwa-install-banner {
@@ -3415,6 +3423,191 @@ body.preloading {
   border-left: 10px solid transparent;
   border-right: 10px solid transparent;
   border-top: 10px solid rgba(26, 58, 42, 0.95);
+}
+
+/* ── Register Interest Popup Modal ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(17, 39, 28, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-card {
+  background-color: #ffffff;
+  width: 92%;
+  max-width: 460px;
+  border-radius: 20px;
+  padding: 2.2rem;
+  box-shadow: 0 25px 60px rgba(17, 39, 28, 0.25);
+  position: relative;
+  transform: scale(0.9) translateY(20px);
+  opacity: 0;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.modal-overlay.open .modal-card {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+}
+
+.modal-close {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--cream);
+  border: none;
+  color: var(--text-light);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.modal-close:hover {
+  background-color: var(--green);
+  color: white;
+  transform: rotate(90deg);
+}
+
+.modal-logo-wrap {
+  text-align: center;
+  margin-bottom: 1.2rem;
+}
+
+.modal-logo-wrap img {
+  height: 48px;
+}
+
+.modal-title {
+  font-family: var(--font-serif);
+  font-size: 1.8rem;
+  font-weight: 500;
+  color: var(--green);
+  text-align: center;
+  margin-bottom: 0.4rem;
+}
+
+.modal-subtitle {
+  font-size: 0.82rem;
+  color: var(--text-light);
+  text-align: center;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+  padding: 0 0.5rem;
+}
+
+.form-field-group {
+  margin-bottom: 1rem;
+}
+
+.form-field-group input,
+.form-field-group select {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid rgba(26, 58, 42, 0.12);
+  background-color: #fcfdfe;
+  font-family: var(--font-sans);
+  font-size: 0.88rem;
+  color: var(--text);
+  transition: 0.3s ease;
+}
+
+.form-field-group input::placeholder {
+  color: var(--text-light);
+  opacity: 0.7;
+}
+
+.form-field-group input:focus,
+.form-field-group select:focus {
+  outline: none;
+  border-color: var(--gold);
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(201, 168, 76, 0.08);
+}
+
+.modal-submit-btn {
+  width: 100%;
+  padding: 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background-color: var(--gold);
+  color: #ffffff;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  transition: 0.3s ease;
+  margin-top: 0.5rem;
+}
+
+.modal-submit-btn:hover {
+  background-color: var(--green);
+  box-shadow: 0 4px 15px rgba(26, 58, 42, 0.15);
+}
+
+.modal-line-divider {
+  height: 1px;
+  background-color: var(--cream-dark);
+  margin: 1.5rem 0 1.2rem 0;
+}
+
+.modal-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.quick-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  border-radius: 8px;
+  background-color: #f7f9f6;
+  text-decoration: none;
+  color: var(--green);
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  transition: 0.3s ease;
+}
+
+.quick-action-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.quick-action-btn:hover {
+  background-color: var(--green);
+  color: #ffffff;
+}
+
+.quick-action-btn:hover svg {
+  stroke: var(--gold);
 }
 
 

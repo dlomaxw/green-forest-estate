@@ -496,19 +496,23 @@ const titleObserver = new IntersectionObserver((entries) => {
 }, { threshold: 0.5 });
 document.querySelectorAll('.section-title').forEach(el => titleObserver.observe(el));
 
-// ── Hero Video Lightbox ──────────────────────
+// ── Hero & Tour Video Lightbox ──────────────────────
 const playHeroVideoBtn = document.getElementById('playHeroVideoBtn');
+const playTourVideoBtn = document.getElementById('playTourVideoBtn');
 const videoModal = document.getElementById('videoModal');
 const videoModalClose = document.getElementById('videoModalClose');
 const videoModalPlayer = document.getElementById('videoModalPlayer');
 
-if (playHeroVideoBtn && videoModal && videoModalClose && videoModalPlayer) {
-  playHeroVideoBtn.addEventListener('click', (e) => {
+if ((playHeroVideoBtn || playTourVideoBtn) && videoModal && videoModalClose && videoModalPlayer) {
+  const openVideoModal = (e) => {
     e.preventDefault();
     videoModalPlayer.src = "https://www.youtube.com/embed/MU3au8kC8Yw?autoplay=1&rel=0";
     videoModal.classList.add('open');
     document.body.style.overflow = 'hidden';
-  });
+  };
+
+  if (playHeroVideoBtn) playHeroVideoBtn.addEventListener('click', openVideoModal);
+  if (playTourVideoBtn) playTourVideoBtn.addEventListener('click', openVideoModal);
 
   const closeMyVideoModal = () => {
     videoModal.classList.remove('open');
@@ -857,5 +861,215 @@ window.addEventListener('beforeinstallprompt', (e) => {
 window.addEventListener('DOMContentLoaded', () => {
   setTimeout(initPwaPrompts, 4500);
 });
+
+// ── Dynamic Content Configuration Loader ──────────────────────
+async function loadDynamicContent() {
+  try {
+    const res = await fetch('/api/content');
+    if (!res.ok) throw new Error('API config offline');
+    const config = await res.json();
+    applyConfig(config);
+  } catch (err) {
+    // Try fallback content.json file
+    fetch('assets/data/content.json')
+      .then(res => res.json())
+      .then(config => applyConfig(config))
+      .catch(e => console.warn('Could not load content configuration:', e));
+  }
+}
+
+function applyConfig(config) {
+  if (!config) return;
+  
+  // Update starting price texts
+  if (config.startingPrice) {
+    document.querySelectorAll('[data-content-key="startingPrice"]').forEach(el => {
+      el.textContent = config.startingPrice;
+    });
+  }
+  
+  // Update max price texts
+  if (config.maxPrice) {
+    document.querySelectorAll('[data-content-key="maxPrice"]').forEach(el => {
+      el.textContent = config.maxPrice;
+    });
+  }
+  
+  // Update hero sub text
+  if (config.heroSub) {
+    document.querySelectorAll('[data-content-key="heroSub"]').forEach(el => {
+      el.textContent = config.heroSub;
+    });
+  }
+  
+  // Update maps iframe srcs
+  if (config.locationMapUrl) {
+    document.querySelectorAll('[data-iframe-key="locationMapUrl"]').forEach(el => {
+      el.src = config.locationMapUrl;
+    });
+  }
+  
+  // Update map direction links
+  if (config.locationDirectionsUrl) {
+    document.querySelectorAll('[data-link-key="locationDirectionsUrl"]').forEach(el => {
+      el.href = config.locationDirectionsUrl;
+    });
+  }
+}
+
+// ── Register Interest Popup Modal Injection ──────────────────────
+function initRegisterInterestModal() {
+  if (sessionStorage.getItem('interestPopupDismissed')) {
+    return;
+  }
+  
+  // Inject modal markup
+  const modalHTML = `
+    <div id="interestModal" class="modal-overlay">
+      <div class="modal-card">
+        <button class="modal-close" id="closeModalBtn">&times;</button>
+        <div class="modal-logo-wrap">
+          <img src="assets/images/forest-green-logo-cropped.png" alt="Forest Green Estates Logo">
+        </div>
+        <h2 class="modal-title">Register Your Interest</h2>
+        <p class="modal-subtitle">Luxury fully-furnished condominiums in Kampala. Leave your details to get pricing, brochures, and schedule site tours.</p>
+        
+        <form id="interestForm">
+          <div class="form-field-group">
+            <input type="text" id="modalName" required placeholder="Full Name *">
+          </div>
+          <div class="form-field-group">
+            <input type="tel" id="modalPhone" required placeholder="Phone Number *">
+          </div>
+          <div class="form-field-group">
+            <input type="email" id="modalEmail" placeholder="Email Address">
+          </div>
+          <div class="form-field-group">
+            <select id="modalRooms">
+              <option value="" disabled selected>Number of Rooms</option>
+              <option value="1 BHK">1 BHK Apartment</option>
+              <option value="2 BHK">2 BHK Apartment</option>
+              <option value="3 BHK">3 BHK Apartment</option>
+            </select>
+          </div>
+          <button type="submit" class="modal-submit-btn">Register My Interest</button>
+        </form>
+        
+        <div class="modal-line-divider"></div>
+        
+        <div class="modal-quick-actions">
+          <a href="tel:+256708970870" class="quick-action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>Call Us</span>
+          </a>
+          <a href="mailto:sales@forestgreenestates.com" class="quick-action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <span>Email</span>
+          </a>
+          <a href="https://wa.me/256708970870" target="_blank" class="quick-action-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+            <span>WhatsApp</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const div = document.createElement('div');
+  div.innerHTML = modalHTML;
+  document.body.appendChild(div.firstElementChild);
+  
+  const modal = document.getElementById('interestModal');
+  const closeBtn = document.getElementById('closeModalBtn');
+  const form = document.getElementById('interestForm');
+  
+  // Timer trigger (3 seconds)
+  setTimeout(() => {
+    if (!sessionStorage.getItem('interestPopupDismissed') && modal) {
+      modal.classList.add('open');
+    }
+  }, 3000);
+  
+  const dismissModal = () => {
+    if (modal) {
+      modal.classList.remove('open');
+    }
+    sessionStorage.setItem('interestPopupDismissed', 'true');
+  };
+  
+  if (closeBtn) {
+    closeBtn.addEventListener('click', dismissModal);
+  }
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) dismissModal();
+    });
+  }
+  
+  if (form) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const lead = {
+        name: document.getElementById('modalName').value.trim(),
+        phone: document.getElementById('modalPhone').value.trim(),
+        email: document.getElementById('modalEmail').value.trim(),
+        rooms: document.getElementById('modalRooms').value
+      };
+      
+      let serverSaved = false;
+      
+      // 1. Try server POST
+      try {
+        const res = await fetch('/api/leads', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(lead)
+        });
+        if (res.ok) {
+          serverSaved = true;
+        }
+      } catch (err) {
+        console.warn('Backend offline, capturing lead locally.');
+      }
+      
+      // 2. Always capture locally as fallback/mirror
+      try {
+        const stored = localStorage.getItem('forestGreenLeads');
+        let leads = stored ? JSON.parse(stored) : [];
+        lead.id = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        lead.timestamp = new Date().toISOString();
+        leads.push(lead);
+        localStorage.setItem('forestGreenLeads', JSON.stringify(leads));
+      } catch (err) {
+        console.error('Failed to save lead in browser storage:', err);
+      }
+      
+      // Render Success inside the card
+      const card = modal.querySelector('.modal-card');
+      card.innerHTML = `
+        <div style="text-align: center; padding: 2rem 0;">
+          <svg viewBox="0 0 24 24" width="60" height="60" fill="none" stroke="var(--gold)" stroke-width="2" style="margin-bottom: 1.5rem;">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+          </svg>
+          <h3 style="color: var(--green); margin-bottom: 0.75rem; font-family: var(--font-serif); font-size: 1.8rem; font-weight:500;">Thank You!</h3>
+          <p style="color: var(--text-light); font-size: 0.95rem; line-height:1.6; margin-bottom: 1rem;">Your interest has been successfully registered.</p>
+          <p style="color: var(--text-light); font-size: 0.88rem;">Our real estate consultant will contact you shortly.</p>
+        </div>
+      `;
+      
+      sessionStorage.setItem('interestPopupDismissed', 'true');
+      setTimeout(dismissModal, 4000);
+    });
+  }
+}
+
+// Initialize sequences
+window.addEventListener('DOMContentLoaded', () => {
+  loadDynamicContent();
+  initRegisterInterestModal();
+});
+
 
 

@@ -1,0 +1,10 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/manager/login",     "destination": "/manager/login.html" },
+    { "source": "/manager/dashboard", "destination": "/manager/dashboard.html" },
+    { "source": "/api/login",         "destination": "/api/login.js" },
+    { "source": "/api/leads",         "destination": "/api/leads.js" },
+    { "source": "/api/content",       "destination": "/api/content.js" }
+  ]
+}

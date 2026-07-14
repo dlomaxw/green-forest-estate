@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard | Forest Green Estates</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="../assets/images/favicon.png" />
+  
+  <style>
+    :root {
+      --green: #1A3A2A;
+      --green-dark: #11271C;
+      --gold: #C9A84C;
+      --gold-light: #DFCD8F;
+      --cream: #F5F7F3;
+      --cream-dark: #E6EAE2;
+      --text: #2C3E35;
+      --text-light: #5A7065;
+      --border: rgba(26, 58, 42, 0.1);
+      --shadow: 0 8px 30px rgba(26, 58, 42, 0.05);
+      --font-serif: 'Cormorant Garamond', serif;
+      --font-sans: 'Montserrat', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--cream);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* Navbar */
+    .admin-nav {
+      background-color: var(--green);
+      color: white;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .nav-brand img {
+      height: 40px;
+    }
+
+    .nav-title h1 {
+      font-family: var(--font-serif);
+      font-size: 1.8rem;
+      font-weight: 500;
+      letter-spacing: 0.05em;
+    }
+
+    .nav-title span {
+      color: var(--gold);
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      display: block;
+      margin-top: -0.2rem;
+    }
+
+    /* Container & Layout */
+    .container {
+      max-width: 1200px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+
+    /* Tabs navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--cream-dark);
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-light);
+      font-family: var(--font-sans);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.75rem 1.5rem;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: 0.3s ease;
+      position: relative;
+    }
+
+    .tab-btn:hover {
+      color: var(--green);
+      background-color: rgba(26, 58, 42, 0.05);
+    }
+
+    .tab-btn.active {
+      color: white;
+      background-color: var(--green);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -0.65rem;
+      left: 50%;
+      transform: translateX(-50%);
+      border-width: 6px;
+      border-style: solid;
+      border-color: var(--green) transparent transparent transparent;
+    }
+
+    /* Tab content panels */
+    .tab-panel {
+      display: none;
+      background: white;
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(26,58,42,0.05);
+      animation: fadeIn 0.4s ease;
+    }
+
+    .tab-panel.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Headings */
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      border-bottom: 1px solid var(--cream-dark);
+      padding-bottom: 1rem;
+    }
+
+    .panel-header h2 {
+      font-family: var(--font-serif);
+      font-size: 2.2rem;
+      color: var(--green);
+      font-weight: 500;
+    }
+
+    /* Action Buttons */
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-family: var(--font-sans);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.3s;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .btn-primary {
+      background-color: var(--gold);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--green);
+      box-shadow: 0 4px 15px rgba(26,58,42,0.15);
+    }
+
+    .btn-outline {
+      background: none;
+      border: 1px solid var(--green);
+      color: var(--green);
+    }
+
+    .btn-outline:hover {
+      background-color: var(--green);
+      color: white;
+    }
+
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+
+    .btn-sm {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.75rem;
+      border-radius: 6px;
+    }
+
+    /* Leads Table Styling */
+    .table-container {
+      overflow-x: auto;
+      margin-top: 1.5rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th {
+      background-color: rgba(26, 58, 42, 0.03);
+      color: var(--green);
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 1rem;
+      border-bottom: 2px solid var(--cream-dark);
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--cream-dark);
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+
+    tr:hover td {
+      background-color: rgba(26, 58, 42, 0.01);
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .tag-server {
+      background-color: rgba(201, 168, 76, 0.15);
+      color: #b08d32;
+    }
+
+    .tag-local {
+      background-color: rgba(90, 112, 101, 0.15);
+      color: var(--text-light);
+    }
+
+    /* Forms */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .form-group label {
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: var(--green);
+    }
+
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+      font-family: var(--font-sans);
+      padding: 0.8rem 1rem;
+      border-radius: 8px;
+      border: 1px solid rgba(26, 58, 42, 0.15);
+      font-size: 0.92rem;
+      color: var(--text);
+      background-color: var(--cream);
+      transition: 0.3s;
+    }
+
+    .form-group input:focus, 
+    .form-group select:focus, 
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--gold);
+      background-color: white;
+      box-shadow: 0 4px 12px rgba(201, 168, 76, 0.1);
+    }
+
+    .help-text {
+      font-size: 0.78rem;
+      color: var(--text-light);
+      line-height: 1.4;
+    }
+
+    /* Toast Notification */
+    #toast {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background-color: var(--green);
+      color: white;
+      padding: 1rem 2rem;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      transform: translateY(100px);
+      opacity: 0;
+      transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      z-index: 10000;
+      font-weight: 500;
+    }
+
+    #toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-light);
+    }
+
+    .empty-state svg {
+      opacity: 0.3;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navbar -->
+  <nav class="admin-nav">
+    <div class="nav-brand">
+      <img src="../assets/images/forest-green-logo-cropped.png" alt="Logo">
+      <div class="nav-title">
+        <h1>Forest Green Estates</h1>
+        <span>Admin Management Portal</span>
+      </div>
+    </div>
+    <div class="nav-status" style="display: flex; gap: 0.75rem;">
+      <button class="btn btn-outline btn-sm" style="color: white; border-color: rgba(255,255,255,0.4);" onclick="logoutAdmin()">Logout</button>
+      <button class="btn btn-outline btn-sm" style="color: white; border-color: rgba(255,255,255,0.4);" onclick="location.reload()">Refresh Data</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    
+    <!-- Tab Switches -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchPanel('leadsPanel', this)">Leads Database</button>
+      <button class="tab-btn" onclick="switchPanel('contentPanel', this)">Content Configuration</button>
+    </div>
+
+    <!-- Leads panel -->
+    <div id="leadsPanel" class="tab-panel active">
+      <div class="panel-header">
+        <h2>Captured Interests</h2>
+        <div style="display: flex; gap: 0.75rem;">
+          <button class="btn btn-outline" id="exportCsvBtn">Export to CSV</button>
+          <button class="btn btn-danger" id="clearLeadsBtn">Clear DB</button>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table id="leadsTable">
+          <thead>
+            <tr>
+              <th>Date / Time</th>
+              <th>Full Name</th>
+              <th>Phone Number</th>
+              <th>Email Address</th>
+              <th>Apartment Choice</th>
+              <th>Storage Type</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="leadsTableBody">
+            <!-- Dynamic lead rows -->
+          </tbody>
+        </table>
+        <div id="leadsEmpty" class="empty-state" style="display: none;">
+          <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="9" cy="7" r="4"></circle>
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+          </svg>
+          <p>No registration records found.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Content Config panel -->
+    <div id="contentPanel" class="tab-panel">
+      <div class="panel-header">
+        <h2>Edit Site Content</h2>
+      </div>
+
+      <form id="contentForm">
+        <div style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--green); margin-bottom: 1rem; border-bottom: 1px solid var(--cream-dark); padding-bottom: 0.5rem;">Pricing Specifications</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="startingPrice">Starting Price (USD)</label>
+            <input type="text" id="startingPrice" required placeholder="e.g. 145,000">
+            <span class="help-text">Displays in banners, descriptions and overlays. Include commas.</span>
+          </div>
+          <div class="form-group">
+            <label for="maxPrice">Maximum Price (USD)</label>
+            <input type="text" id="maxPrice" required placeholder="e.g. 160,000">
+            <span class="help-text">Upper range value used inside payments page and summaries.</span>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="heroSub">Hero Subtitle Copy</label>
+          <input type="text" id="heroSub" required style="width: 100%;" placeholder="e.g. Luxury 3BHK Fully Furnished Condominiums • From USD 145,000">
+          <span class="help-text">The text line displayed directly underneath the big title on the homepage hero.</span>
+        </div>
+
+        <div style="font-family: var(--font-serif); font-size: 1.5rem; color: var(--green); margin-top: 2rem; margin-bottom: 1rem; border-bottom: 1px solid var(--cream-dark); padding-bottom: 0.5rem;">Maps &amp; Directions Links</div>
+        <div class="form-group">
+          <label for="locationMapUrl">Google Maps Embed Frame URL (iframe src)</label>
+          <textarea id="locationMapUrl" required rows="2" style="width: 100%; font-family: monospace; font-size: 0.82rem;"></textarea>
+          <span class="help-text">Must be the embeddable URL (contains output=embed or similar parameters).</span>
+        </div>
+
+        <div class="form-group">
+          <label for="locationDirectionsUrl">Google Maps Place Link (Directions Target URL)</label>
+          <input type="text" id="locationDirectionsUrl" required style="width: 100%; font-family: monospace; font-size: 0.82rem;" placeholder="e.g. https://www.google.com/maps/place/...">
+          <span class="help-text">Link triggered when clicking "Get Directions" buttons.</span>
+        </div>
+
+        <div style="margin-top: 2rem; display: flex; justify-content: flex-end;">
+          <button type="submit" class="btn btn-primary">Save Config Changes</button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Status Toast -->
+  <div id="toast">
+    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+    <span id="toastMessage">Changes Saved Successfully</span>
+  </div>
+
+  <script>
+    // ── Session Protection ──
+    const token = sessionStorage.getItem('forestGreenAdminToken');
+    if (!token) {
+      window.location.href = 'login.html';
+    }
+
+    function logoutAdmin() {
+      sessionStorage.removeItem('forestGreenAdminToken');
+      window.location.href = 'login.html';
+    }
+
+    // Helper for authenticated headers
+    function getAuthHeaders() {
+      return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+    }
+
+    // Tab switching
+    function switchPanel(panelId, btnEl) {
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      
+      document.getElementById(panelId).classList.add('active');
+      btnEl.classList.add('active');
+    }
+
+    // Toast show helper
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      const msgSpan = document.getElementById('toastMessage');
+      
+      msgSpan.textContent = message;
+      if (isError) {
+        toast.style.backgroundColor = '#e74c3c';
+      } else {
+        toast.style.backgroundColor = 'var(--green)';
+      }
+      
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+
+    // Format ISO dates into user-friendly format
+    function formatDate(isoString) {
+      if (!isoString) return '-';
+      const d = new Date(isoString);
+      return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Load Leads
+    let loadedLeads = [];
+    async function loadLeads() {
+      const tableBody = document.getElementById('leadsTableBody');
+      const emptyState = document.getElementById('leadsEmpty');
+      tableBody.innerHTML = '';
+      
+      let serverLeads = [];
+      let localLeads = [];
+
+      // 1. Fetch from server
+      try {
+        const response = await fetch('/api/leads', {
+          headers: getAuthHeaders()
+        });
+        if (response.ok) {
+          serverLeads = await response.json();
+        } else if (response.status === 401) {
+          logoutAdmin();
+          return;
+        }
+      } catch (err) {
+        console.warn('Backend server APIs unavailable. Fetching localStorage only.');
+      }
+
+      // 2. Fetch from localStorage
+      try {
+        const stored = localStorage.getItem('forestGreenLeads');
+        if (stored) {
+          localLeads = JSON.parse(stored);
+        }
+      } catch (err) {
+        console.error('LocalStorage unavailable:', err);
+      }
+
+      // Merge and flag leads
+      const leads = [];
+      serverLeads.forEach(l => {
+        l.source = 'Server';
+        leads.push(l);
+      });
+      localLeads.forEach(l => {
+        // If not already in server list
+        const exists = serverLeads.some(s => s.phone === l.phone || s.id === l.id);
+        if (!exists) {
+          l.source = 'Local Browser';
+          leads.push(l);
+        }
+      });
+
+      // Sort by date descending
+      leads.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      loadedLeads = leads;
+
+      if (leads.length === 0) {
+        emptyState.style.display = 'block';
+        return;
+      }
+      
+      emptyState.style.display = 'none';
+      leads.forEach(lead => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${formatDate(lead.timestamp)}</td>
+          <td style="font-weight:600;">${escapeHTML(lead.name)}</td>
+          <td><a href="tel:${escapeHTML(lead.phone)}" style="color:var(--green); font-weight:500;">${escapeHTML(lead.phone)}</a></td>
+          <td>${lead.email ? `<a href="mailto:${escapeHTML(lead.email)}" style="color:var(--text-light);">${escapeHTML(lead.email)}</a>` : '-'}</td>
+          <td style="font-weight:600; color:var(--gold);">${escapeHTML(lead.rooms || '-')}</td>
+          <td><span class="tag tag-${lead.source === 'Server' ? 'server' : 'local'}">${lead.source}</span></td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteLead('${lead.id}', '${lead.source}')">Delete</button>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+
+    // Delete a lead
+    async function deleteLead(id, source) {
+      if (!confirm('Are you sure you want to delete this registration record?')) return;
+
+      if (source === 'Server') {
+        try {
+          const response = await fetch(`/api/leads?id=${id}`, { 
+            method: 'DELETE',
+            headers: getAuthHeaders()
+          });
+          if (response.ok) {
+            showToast('Lead deleted from database.');
+            loadLeads();
+          } else if (response.status === 401) {
+            logoutAdmin();
+          } else {
+            showToast('Failed to delete lead from server.', true);
+          }
+        } catch (e) {
+          showToast('Network error, could not contact server.', true);
+        }
+      } else {
+        // Delete from local storage
+        try {
+          const stored = localStorage.getItem('forestGreenLeads');
+          if (stored) {
+            let localLeads = JSON.parse(stored);
+            localLeads = localLeads.filter(l => l.id !== id);
+            localStorage.setItem('forestGreenLeads', JSON.stringify(localLeads));
+            showToast('Lead deleted from browser storage.');
+            loadLeads();
+          }
+        } catch (e) {
+          showToast('Failed to edit local storage.', true);
+        }
+      }
+    }
+
+    // Clear all leads
+    document.getElementById('clearLeadsBtn').addEventListener('click', async () => {
+      if (!confirm('CAUTION: This will delete ALL leads from BOTH database and browser storage. Proceed?')) return;
+      
+      // Clear Local Storage
+      localStorage.removeItem('forestGreenLeads');
+      
+      // Clear Server DB
+      try {
+        const response = await fetch('/api/leads', { headers: getAuthHeaders() });
+        if (response.ok) {
+          const allLeads = await response.json();
+          for (const lead of allLeads) {
+            await fetch(`/api/leads?id=${lead.id}`, { 
+              method: 'DELETE',
+              headers: getAuthHeaders()
+            });
+          }
+        } else if (response.status === 401) {
+          logoutAdmin();
+          return;
+        }
+      } catch (e) {
+        console.warn('Server offline/not running API.');
+      }
+      
+      showToast('All leads cleared.');
+      loadLeads();
+    });
+
+    // Export to CSV
+    document.getElementById('exportCsvBtn').addEventListener('click', () => {
+      if (loadedLeads.length === 0) {
+        showToast('No leads available to export.', true);
+        return;
+      }
+      
+      let csvContent = 'data:text/csv;charset=utf-8,';
+      csvContent += 'Timestamp,Full Name,Phone Number,Email Address,Room Choice,Storage Source\n';
+      
+      loadedLeads.forEach(lead => {
+        const row = [
+          lead.timestamp || '',
+          `"${(lead.name || '').replace(/"/g, '""')}"`,
+          `"${(lead.phone || '').replace(/"/g, '""')}"`,
+          `"${(lead.email || '').replace(/"/g, '""')}"`,
+          `"${(lead.rooms || '').replace(/"/g, '""')}"`,
+          lead.source
+        ].join(',');
+        csvContent += row + '\n';
+      });
+      
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Forest_Green_Leads_${Date.now()}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('CSV export downloaded.');
+    });
+
+    // Load content config
+    async function loadContentConfig() {
+      try {
+        const response = await fetch('/api/content');
+        if (response.ok) {
+          const config = await response.json();
+          document.getElementById('startingPrice').value = config.startingPrice || '';
+          document.getElementById('maxPrice').value = config.maxPrice || '';
+          document.getElementById('heroSub').value = config.heroSub || '';
+          document.getElementById('locationMapUrl').value = config.locationMapUrl || '';
+          document.getElementById('locationDirectionsUrl').value = config.locationDirectionsUrl || '';
+        }
+      } catch (err) {
+        console.warn('Backend server config API is unavailable.');
+      }
+    }
+
+    // Save content config
+    document.getElementById('contentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        startingPrice: document.getElementById('startingPrice').value.trim(),
+        maxPrice: document.getElementById('maxPrice').value.trim(),
+        currency: 'USD',
+        heroSub: document.getElementById('heroSub').value.trim(),
+        locationMapUrl: document.getElementById('locationMapUrl').value.trim(),
+        locationDirectionsUrl: document.getElementById('locationDirectionsUrl').value.trim()
+      };
+
+      try {
+        const response = await fetch('/api/content', {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(payload)
+        });
+        if (response.ok) {
+          showToast('Content config updated on server!');
+        } else if (response.status === 401) {
+          logoutAdmin();
+        } else {
+          showToast('Failed to save config to server.', true);
+        }
+      } catch (err) {
+        showToast('Network error, content config is locally offline.', true);
+      }
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      loadLeads();
+      loadContentConfig();
+    });
+  </script>
+</body>
+</html>

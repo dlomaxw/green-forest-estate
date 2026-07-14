@@ -1,4 +1,4 @@
-const CACHE_NAME = 'forest-green-v1';
+const CACHE_NAME = 'forest-green-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
