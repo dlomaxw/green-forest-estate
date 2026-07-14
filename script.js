@@ -944,14 +944,6 @@ function initRegisterInterestModal() {
           <div class="form-field-group">
             <input type="email" id="modalEmail" placeholder="Email Address">
           </div>
-          <div class="form-field-group">
-            <select id="modalRooms">
-              <option value="" disabled selected>Number of Rooms</option>
-              <option value="1 BHK">1 BHK Apartment</option>
-              <option value="2 BHK">2 BHK Apartment</option>
-              <option value="3 BHK">3 BHK Apartment</option>
-            </select>
-          </div>
           <button type="submit" class="modal-submit-btn">Register My Interest</button>
         </form>
         
@@ -1014,7 +1006,7 @@ function initRegisterInterestModal() {
         name: document.getElementById('modalName').value.trim(),
         phone: document.getElementById('modalPhone').value.trim(),
         email: document.getElementById('modalEmail').value.trim(),
-        rooms: document.getElementById('modalRooms').value
+        rooms: '3 BHK'
       };
       
       let serverSaved = false;
