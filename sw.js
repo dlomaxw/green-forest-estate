@@ -1,4 +1,4 @@
-const CACHE_NAME = 'forest-green-v3';
+const CACHE_NAME = 'forest-green-v4';
 const STATIC_ASSETS = [
   './',
   './index.html',
@@ -8,8 +8,8 @@ const STATIC_ASSETS = [
   './gallery.html',
   './amenities.html',
   './payment.html',
-  './style.css',
-  './script.js',
+  './style.css?v=7',
+  './script.js?v=7',
   './manifest.json',
   './assets/images/favicon.png',
   './assets/images/forest-green-logo-cropped.png',
