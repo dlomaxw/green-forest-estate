@@ -1,13 +1,12 @@
-const CACHE_NAME = 'forest-green-v4';
+const CACHE_NAME = 'forest-green-v5';
 const STATIC_ASSETS = [
   './',
-  './index.html',
-  './overview.html',
-  './location.html',
-  './features.html',
-  './gallery.html',
-  './amenities.html',
-  './payment.html',
+  './overview',
+  './location',
+  './features',
+  './gallery',
+  './amenities',
+  './payment',
   './style.css?v=7',
   './script.js?v=7',
   './manifest.json',
@@ -58,7 +57,15 @@ self.addEventListener('fetch', (e) => {
         fetch(e.request)
           .then((networkResponse) => {
             if (networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(e.request, networkResponse));
+              let responseToCache = networkResponse;
+              if (networkResponse.redirected) {
+                responseToCache = new Response(networkResponse.body, {
+                  status: networkResponse.status,
+                  statusText: networkResponse.statusText,
+                  headers: networkResponse.headers
+                });
+              }
+              caches.open(CACHE_NAME).then((cache) => cache.put(e.request, responseToCache));
             }
           })
           .catch(() => { /* Ignore offline fetch errors for background sync */ });
@@ -67,16 +74,29 @@ self.addEventListener('fetch', (e) => {
 
       // If not in cache, fetch from network and cache dynamically for media assets
       return fetch(e.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
-          return networkResponse;
+        if (!networkResponse) return networkResponse;
+
+        // If the response is redirected, clean it to avoid browser security error
+        // when returning it to a manual redirect request (like navigation)
+        let responseToReturn = networkResponse;
+        if (networkResponse.redirected) {
+          responseToReturn = new Response(networkResponse.body, {
+            status: networkResponse.status,
+            statusText: networkResponse.statusText,
+            headers: networkResponse.headers
+          });
         }
 
-        const responseToCache = networkResponse.clone();
+        if (networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+          return responseToReturn;
+        }
+
+        const responseToCache = responseToReturn.clone();
         caches.open(CACHE_NAME).then((cache) => {
           cache.put(e.request, responseToCache);
         });
 
-        return networkResponse;
+        return responseToReturn;
       });
     })
   );

@@ -267,15 +267,24 @@ const server = http.createServer(async (req, res) => {
   // ── STATIC FILE SERVING ──
   // ════════════════════════════════════════
 
-  // Clean URL rewrites for manager panel
-  if (pathname === '/manager/login' || pathname === '/manager/login/') {
-    pathname = '/manager/login.html';
-  }
-  if (pathname === '/manager/dashboard' || pathname === '/manager/dashboard/') {
-    pathname = '/manager/dashboard.html';
-  }
+  // Clean URL rewrites
   if (pathname === '/') {
     pathname = '/index.html';
+  } else {
+    const cleanPages = [
+      '/overview',
+      '/location',
+      '/features',
+      '/gallery',
+      '/amenities',
+      '/payment',
+      '/manager/login',
+      '/manager/dashboard'
+    ];
+    const normPath = pathname.endsWith('/') ? pathname.slice(0, -1) : pathname;
+    if (cleanPages.includes(normPath)) {
+      pathname = normPath + '.html';
+    }
   }
 
   // URL-decode so %20 (and similar) resolves to actual filenames with spaces
